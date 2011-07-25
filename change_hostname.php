@@ -25,7 +25,6 @@
  */
 
  /*
- 	FIXME: also change wp_site when present.
  	TODO: support path changes
  	TODO: write changes to wp-config
  	TODO: modularize stuff
@@ -47,8 +46,14 @@
 	define ('PATH', '/var/www/wp3');
 	require('lib/utils.php') ;
 
-	message( "* Migrating WP Database to '$new_domain' hostname.") ;
+	message( "* Migrating WP Database to '$new_domain' .") ;
 	
+	step( "** Changing domain on $wpdb->site ...");
+	$wpdb->query($wpdb->prepare(
+		"update $wpdb->site set domain = %s where domain = %s", 
+		$new_domain, $old_domain));
+	done();
+
 	step( "** Changing domains on $wpdb->blogs ...");
 	$wpdb->query($wpdb->prepare("update $wpdb->blogs set domain=%s", $new_domain ));
 	done();
@@ -56,10 +61,15 @@
 	step("** Changing wp_options on all blogs... ");
 	$blog_list = $wpdb->get_results("select * from $wpdb->blogs");
 	foreach( $blog_list as $blog){
+		// uses proper table prefixing.
 		$table_name = $wpdb->prefix . $blog->blog_id . '_options';
-		$exists = $wpdb->get_var("show tables like '$table_name' ");
-		if(! $exists)
-			$table_name = $wpdb->options;
+		// the first blog may or may not use a numbered prefix.
+		if((int)$blog->blog_id == 1){
+			$exists = $wpdb->get_var("show tables like '$table_name' ");
+			if(! $exists)
+				$table_name = $wpdb->options;
+		}
+		
 		$query = 
 			"update $table_name set
 				option_value = replace(
