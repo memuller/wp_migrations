@@ -34,20 +34,44 @@
 	$old_domain = 'localhost';
 	$new_domain = 'test';
 
-	if($argv[1] && $argv[2]){
+	if(isset($argv[1]) && isset($argv[2])){
 		$old_domain = $argv[1];
 		$new_domain = $argv[2];
 	}
+	if (isset($argv[3]))
+		$new_path = $argv[3];
+		die('Not implemented. Sorry.');
 	
-	if($old_domain == $new_domain){
+	if($old_domain == $new_domain and ! isset($new_path)){
 		die("Old and new domains are the same - please specify different ones.");
 	}
+	
 	define ('DOMAIN', $old_domain);
 	define ('PATH', '/var/www/wp3');
-	require('lib/utils.php') ;
+	
+	require_once('lib/utils.php');
 
 	message( "* Migrating WP Database to '$new_domain' .") ;
 	
+	if (isset($new_path)) {
+		step("** Changing paths on $wpdb->site ...");
+		$old_path = $wpdb->get_var($wpdb->prepare( "select path from $wpdb->site 
+			where domain = %s", $old_domain));
+		$query = $wpdb->prepare( "update $wpdb->site set path = %s 
+			where domain = %s", 
+			$new_path, $old_domain);
+		$wpdb->query($query);
+		done();
+
+		step("** Changing paths on $wpdb->blogs ...");
+		$query = $wpdb->prepare("update $wpdb->blogs set 
+			path = replace(path, %s, %s) where domain = %s",
+			"/$old_path/", "/$new_path/", $old_domain);
+		$wpdb->query($query);
+	}
+
+	require_once('lib/wp-load.php');
+
 	step( "** Changing domain on $wpdb->site ...");
 	$wpdb->query($wpdb->prepare(
 		"update $wpdb->site set domain = %s where domain = %s", 
@@ -55,7 +79,8 @@
 	done();
 
 	step( "** Changing domains on $wpdb->blogs ...");
-	$wpdb->query($wpdb->prepare("update $wpdb->blogs set domain=%s", $new_domain ));
+	$wpdb->query($wpdb->prepare("update $wpdb->blogs set domain=%s
+		where domain = %s", $new_domain, $old_domain ));
 	done();
 	
 	step("** Changing wp_options on all blogs... ");
