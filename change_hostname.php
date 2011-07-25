@@ -30,9 +30,10 @@
  	TODO: write changes to wp-config
  	TODO: modularize stuff
  */
-
+ 	
+ 	
 	$old_domain = 'localhost';
-	$new_domain = 'localhost';
+	$new_domain = 'test';
 
 	if($argv[1] && $argv[2]){
 		$old_domain = $argv[1];
@@ -42,26 +43,17 @@
 	if($old_domain == $new_domain){
 		die("Old and new domains are the same - please specify different ones.");
 	}
+	define ('DOMAIN', $old_domain);
+	define ('PATH', '/var/www/wp3');
+	require('lib/utils.php') ;
 
-	error_reporting(E_ALL);
-	if (! defined('STDIN') ) {
-		die() ; 
-	}
-	define('DOING_AJAX', true);
-	define('WP_USE_THEMES', false);
-	$_SERVER = array(
-		'HTTP_HOST' => $old_domain,
-		'SERVER_NAME' => $old_domain,
-		'REQUEST_URI' => '/',
-		'REQUEST_METHOD' => 'GET'
-		);
-	require_once( "../wp-load.php") ;
-
-	echo "* Migrating WP Database to '$new_domain' hostname. \n" ;
-	echo "** Changing domains on $wpdb->blogs ...";
+	message( "* Migrating WP Database to '$new_domain' hostname.") ;
+	
+	step( "** Changing domains on $wpdb->blogs ...");
 	$wpdb->query($wpdb->prepare("update $wpdb->blogs set domain=%s", $new_domain ));
-	echo "done. \n" ;
-	echo "** Changing wp_options on all blogs... ";
+	done();
+	
+	step("** Changing wp_options on all blogs... ");
 	$blog_list = $wpdb->get_results("select * from $wpdb->blogs");
 	foreach( $blog_list as $blog){
 		$table_name = $wpdb->prefix . $blog->blog_id . '_options';
@@ -74,12 +66,9 @@
 					option_value, '$old_domain', '$new_domain'
 				)
 				where option_value like '%$old_domain%'";
-		if ($wpdb->query($query)){
-			echo $blog->blog_id . ' ' ;
-		}else{
-			$wpdb->print_error();
-		}
+		if ($wpdb->query($query))
+			step($blog->blog_id . ' ') ;
 	}
-	echo "done. \n" ;
+	done();
 
  ?>
