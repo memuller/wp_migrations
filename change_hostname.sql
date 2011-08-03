@@ -3,10 +3,10 @@ delimiter //
 create procedure wp_change_hostname()
 begin
 	# parameters and otherwise configurable stuff
-	declare old_hostname varchar(255) default 'ubuntu';
+	declare old_hostname varchar(255) default '';
 	declare new_hostname varchar(255) default 'localhost';
 	declare old_path varchar(255) default '' ;
-	declare new_path varchar(255) default '';
+	declare new_path varchar(255) default '/wp3/';
 	declare main_wp_tables_have_id_prefix_too boolean default false ;
 	
 	# loop control variables.
@@ -27,13 +27,12 @@ begin
 	# loop breaking handlers.
 	declare CONTINUE HANDLER for NOT FOUND
 		set ended = true ;
-		 
+		
 	# gets old path and domain.
 	if old_hostname = '' then
 		select domain from wp_site limit 1 into old_hostname;
 	end if;
 	select path from wp_site where domain = old_hostname limit 1 into old_path;
-
 	
 	# defaults path, if none where specified.
 	if new_path = '' then
@@ -48,21 +47,18 @@ begin
 		if found_blogs_count = checked_blogs_count then
 			close blogs ; leave wp_options_loop ;
 		end if;
-    	select concat(domain, path) from wp_blogs where blog_id = current_blog_id into old_full_blog_url ;
     	if current_blog_id = 1 and main_wp_tables_have_id_prefix_too = false then 
         	set current_blog_id = null ;
     	end if;
     	
 		set wp_options_table = concat_ws('_', 'wp', current_blog_id, 'options');
-		
-		select replace(old_full_blog_url, old_path, new_path) into new_full_blog_url;
-		select replace(new_full_blog_url, old_hostname, new_hostname) into new_full_blog_url;
+
 		set @q := concat('update ', 
 							wp_options_table, 
 							" set option_value = replace(option_value, '", 
-							old_full_blog_url, 
+							concat(old_hostname, old_path), 
 							"', '", 
-							new_full_blog_url, 
+							concat(new_hostname, new_path), 
 						"');");
 		prepare statement from @q ;
 		execute statement ;
@@ -71,7 +67,12 @@ begin
 	end loop wp_options_loop ;
 	
 	update wp_site set domain = new_hostname, path = new_path where domain = old_hostname ;
-	update wp_blogs set domain = new_hostname, path = replace(path, old_path, new_path) where domain = old_hostname ;
+	if old_path = '/' then
+		update wp_blogs set domain = new_hostname, path = concat(new_path, path) where domain = old_hostname;
+		update wp_blogs set path = replace(path, '//', '/') where domain = new_hostname;
+	else
+		update wp_blogs set domain = new_hostname, path = replace(path, old_path, new_path) where domain = old_hostname ;
+	end if;
 	
 	select found_blogs_count, checked_blogs_count, debug_str ;
 end//
