@@ -1,13 +1,10 @@
-drop procedure if exists wp_change_hostname ;
-delimiter //
-create procedure wp_change_hostname()
+drop procedure if exists wp_change_hostname;
+DELIMITER ;;
+CREATE PROCEDURE wp_change_hostname (in new_hostname varchar(255), in new_path varchar(255), in main_wp_tables_have_id_prefix_too boolean )
 begin
 	# parameters and otherwise configurable stuff
 	declare old_hostname varchar(255) default '';
-	declare new_hostname varchar(255) default 'localhost';
 	declare old_path varchar(255) default '' ;
-	declare new_path varchar(255) default '/wp3/';
-	declare main_wp_tables_have_id_prefix_too boolean default false ;
 	
 	# loop control variables.
 	declare ended boolean default false;
@@ -75,6 +72,5 @@ begin
 	end if;
 	
 	select found_blogs_count, checked_blogs_count, debug_str ;
-end//
-delimiter ;
-call wp_change_hostname;
+end;;
+DELIMITER ;
