@@ -38,5 +38,9 @@
 	$cmd = sprintf("mysql -u %s -p%s -h %s %s < dump.sql", DB_USER, DB_PASSWORD, DB_HOST, DB_NAME);
 	system($cmd);
 
+	$new_domain = ask("** Do you want to map a domain to it? (leave blank if no)") ;
+	if ($new_domain) {
+		$wpdb->query("insert into wp_domain_mapping values('', $new_blog_id, '$new_domain', 1) ;");
+	}
 
  ?>
