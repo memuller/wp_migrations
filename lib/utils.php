@@ -5,6 +5,13 @@
 			die() ; 
 	}
 
+	function ask($question){
+		echo $question . "\n";
+		$handler = fopen('php://stdin', 'r');
+		$line = fgets($handler);
+		return trim($line) ;
+	}
+
 	function message($text, $line_break = true){
 		$break = $line_break ? "\n" : "" ;
 		echo $text . $break ;
