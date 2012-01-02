@@ -1,6 +1,5 @@
 <?php
-	define ('PATH', '/home/memuller/Repos/wordpress_apps');
-	define ('DOMAIN', 'apps.local');
+	require_once '../wp-migrations-config.php' ;
 	require_once 'lib/utils.php' ;
 	require_once 'lib/wp-load.php';
 
@@ -17,7 +16,7 @@
 	message("* Found WP database from $single_site_url ($single_site_name)");
 	$new_path = ask("** Chose a path for the blog (please include backslashes:");
 
-	$new_site_url = $root_site_domain . $new_path  ;
+	$new_site_url = 'http://' . $root_site_domain . $new_path  ;
 	$query = "update wp_options set option_value = 
 		replace(option_value, '$single_site_url', '$new_site_url' ); ";
 	$single_db->query($query);
