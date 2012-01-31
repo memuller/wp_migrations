@@ -7,6 +7,7 @@
 	require 'lib/ez_sql/mysql/ez_sql_mysql.php' ;
 
 	$single_db_name = $argv[1];
+	$lock_tables = false ; 
 
 	$single_db = new ezSQL_mysql(DB_USER, DB_PASSWORD, $argv[1], DB_HOST);
 	$single_site_url = $single_db->get_var("select option_value from wp_options where option_name = 'home' ") or die('Failed to connect.');
@@ -39,10 +40,17 @@
 		}
 	}
 
-	$cmd = sprintf("mysqldump -u %s -p%s -h %s %s %s > dump.sql", DB_USER, DB_PASSWORD, DB_HOST, $single_db_name, implode(" ", $new_table_names));
+
+
+
+	$cmd = sprintf( "mysqldump -u %s -p%s -h %s %s %s  %s > dump.sql", 
+		DB_USER, DB_PASSWORD, DB_HOST, $single_db_name, implode(" ", $new_table_names),
+		$lock_tables ? "" : "--lock-tables=false"
+	);
 	system($cmd) ;
 
-	$cmd = sprintf("mysql -u %s -p%s -h %s %s < dump.sql", DB_USER, DB_PASSWORD, DB_HOST, DB_NAME);
+	$cmd = sprintf("mysql -u %s -p%s -h %s %s < dump.sql", 
+		DB_USER, DB_PASSWORD, DB_HOST, DB_NAME );
 	system($cmd);
 
 	foreach ($new_table_names as $table_name){
