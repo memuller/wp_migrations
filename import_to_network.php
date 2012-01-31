@@ -23,7 +23,10 @@
 	
 	$new_blog_id = wpmu_create_blog($root_site_domain, $new_path, $single_site_name, 1, null, 1);
 
+	$old_tables = array() ;
+	
 	foreach ($single_db->get_col("show tables",0) as $table_name) {
+		$old_tables[]= $table_name ;
 		$arr = explode('_', $table_name);
 		array_splice($arr, 1, 0, $new_blog_id);
 		$arr[0] = $wpdb->prefix ; 
@@ -41,6 +44,13 @@
 	$new_domain = ask("** Do you want to map a domain to it? (leave blank if no)") ;
 	if ($new_domain) {
 		$wpdb->query(sprintf("insert into %s values('', $new_blog_id, '$new_domain', 1) ;", $wpdb->prefix . 'domain_mapping' ));
+	}
+
+	$destroy_old_tables = ask("** Do you want to destroy the old $single_site_name tables? (blank for no)") ;
+	if ($destroy_old_tables) {
+		foreach ($old_tables as $table) {
+			$single_db->query("drop table $table") ;
+		}
 	}
 
  ?>
