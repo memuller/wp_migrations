@@ -32,7 +32,7 @@
 
 		if($table_name == 'wp_options') $new_wp_options_table = $new_table_name ;
 
-		if($table_name != 'wp_users'){
+		if($table_name != 'wp_users' and $table_name != 'wp_usermeta'){
 			$new_table_names[]= $new_table_name ;
 			$single_db->query("create table $new_table_name like $table_name ; ");
 			$single_db->query("insert into $new_table_name select * from $table_name ;");
