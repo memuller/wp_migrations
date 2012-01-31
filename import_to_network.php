@@ -26,6 +26,7 @@
 	foreach ($single_db->get_col("show tables",0) as $table_name) {
 		$arr = explode('_', $table_name);
 		array_splice($arr, 1, 0, $new_blog_id);
+		$arr[0] = $wpdb->prefix ; 
 		$new_table_name = implode('_', $arr);
 		$single_db->query("create table $new_table_name like $table_name ; ");
 		$single_db->query("insert into $new_table_name select * from $table_name ;");
