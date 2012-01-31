@@ -11,7 +11,7 @@
 	$single_db = new ezSQL_mysql(DB_USER, DB_PASSWORD, $argv[1], DB_HOST);
 	$single_site_url = $single_db->get_var("select option_value from wp_options where option_name = 'home' ") or die('Failed to connect.');
 	$single_site_name = $single_db->get_var(" select option_value from wp_options where option_name = 'blogname' ;");
-	$root_site_domain = $wpdb->get_var(" select domain from wp_site limit 1 ;");
+	$root_site_domain = $wpdb->get_var(sprintf("select domain from %s limit 1 ;", $wpdb->prefix . 'site'));
 	
 	message("* Found WP database from $single_site_url ($single_site_name)");
 	$new_path = ask("** Chose a path for the blog (please include backslashes:");
@@ -39,7 +39,7 @@
 
 	$new_domain = ask("** Do you want to map a domain to it? (leave blank if no)") ;
 	if ($new_domain) {
-		$wpdb->query("insert into wp_domain_mapping values('', $new_blog_id, '$new_domain', 1) ;");
+		$wpdb->query(sprintf("insert into %s values('', $new_blog_id, '$new_domain', 1) ;", $wpdb->prefix . 'domain_mapping' ));
 	}
 
  ?>
