@@ -46,11 +46,13 @@
 		foreach (array('spam', 'deleted', 'user_status', 'user_activation_key', 'ID') as $field) {
 			unset($user[$field]);
 		}
-		if( ! $user_id = $wpdb->get_var(sprintf("select id from $wpdb->users where user_email = '%s'", $user['user_email']) )  ){
+
+		$user_id = $wpdb->get_var(sprintf("select id from $wpdb->users where user_email = '%s'", $user['user_email']) ) ;
+
+		if( empty($user_id) ){
 			$user_id = wp_insert_user($user) ;
 			wp_insert_user(array('ID'=> $user_id, 'user_pass' => $user['user_pass'])) ;	
 		}
-		
 
 		$metadatas = $single_db->get_results( 
 			"select meta_key, meta_value from wp_usermeta where user_id = $old_user_id " ) ;
@@ -60,7 +62,7 @@
 		}
 
 		$single_db->query(sprintf( 
-				"update $new_posts_table set post_author = %s where author_id = %s", 
+				"update $new_posts_table set post_author = %s where post_author = %s", 
 				$user_id, $old_user_id  )) ;
 
 	}
