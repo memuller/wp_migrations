@@ -3,10 +3,10 @@
 	define('DOING_AJAX', true);
 	define('WP_USE_THEMES', false);
 	$_SERVER = array(
-		'HTTP_HOST' => DOMAIN,
-		'SERVER_NAME' => DOMAIN,
+		'HTTP_HOST' => $domain,
+		'SERVER_NAME' => $domain,
 		'REQUEST_URI' => '/',
 		'REQUEST_METHOD' => 'GET'
 		);
-	require (PATH . "/wp-load.php") ;
+	require ($path . "/wp-load.php") ;
 ?>
