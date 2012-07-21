@@ -39,8 +39,4 @@
 
 		}
 	}
-
-	$cfg = new WPConfig("/var/www/wp3");
-	print_r($cfg->options);
-
  ?>
